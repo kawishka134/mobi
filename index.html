@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>පින්තූර සංස්කරණය පරීක්ෂාකරු</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f3f3f3;
+        }
+        h1 {
+            color: #333;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+            display: none;
+        }
+        #result.edited {
+            background-color: #ffcccc;
+            color: #d00000;
+        }
+        #result.original {
+            background-color: #ccffcc;
+            color: #008000;
+        }
+    </style>
+</head>
+<body>
+    <h1>පින්තූර සංස්කරණය හඳුනා ගැනීම</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="result">පරික්ෂා කරයි...</div>
+
+    <!-- Tesseract.js Library එක සඳහා -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = "පරික්ෂා කරයි...";
+            resultDiv.style.display = "block";
+
+            if (file) {
+                // OCR ක්‍රියාවලිය ආරම්භ කිරීම
+                Tesseract.recognize(
+                    file,
+                    'eng', // OCR භාවිතා කරන භාෂාව
+                    { logger: m => console.log(m) } // තොරතුරු සංඥා පෙන්වයි
+                ).then(({ data: { text } }) => {
+                    // පින්තූරයේ අකුරු OCR මඟින් හඳුනාගැනීම
+                    resultDiv.textContent = `හඳුනාගත් අන්තර්ගතය: ${text}`;
+                    
+                    // මෙහිදී ඔබට Original සහ Edited පරීක්ෂා කිරීමට අක්ෂර අන්තර්ගතයේ වෙනස්කම් පරීක්ෂා කළ හැක
+                    // උදාහරණයක්: මුදල් රිසිට් එකේ මූලික අංකයක් හෝ ගිණුම් අංකයක් පරීක්ෂා කිරීම
+                    const expectedAccountNumber = "123456"; // ඔබට හඳුනාගත යුතු මුල් ගිණුම් අංකය
+                    const expectedTransactionCode = "TX1234"; // මුල් රිසිට් අංකය හෝ වෙනත් මුලික අගය
+
+                    if (text.includes(expectedAccountNumber) && text.includes(expectedTransactionCode)) {
+                        resultDiv.className = "original";
+                        resultDiv.textContent += " - මුල් පින්තූරය.";
+                    } else {
+                        resultDiv.className = "edited";
+                        resultDiv.textContent += " - සංස්කරණය කර ඇත.";
+                    }
+                }).catch((error) => {
+                    resultDiv.className = "edited";
+                    resultDiv.textContent = "පරික්ෂා කිරීමේ දෝෂයක් ඇතිවිය.";
+                    console.error("OCR දෝෂය:", error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
